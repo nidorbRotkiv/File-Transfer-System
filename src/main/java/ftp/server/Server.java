@@ -11,13 +11,9 @@ import java.util.Map;
 public class Server {
     private final int port;
 
-    public Server(int port) {
-        this.port = port;
-        createStorageDirectory();
-    }
-
     public Server() {
-        this(FTPShared.DEFAULT_PORT);
+        this.port = FTPShared.DEFAULT_PORT;
+        createStorageDirectory();
     }
 
     public static Map<String, Long> storageContentsWithSizes() {
@@ -66,12 +62,6 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        Server server;
-        if (args.length > 0) {
-            server = new Server(Integer.parseInt(args[0]));
-        } else {
-            server = new Server();
-        }
-        server.start();
+        new Server().start();
     }
 }
