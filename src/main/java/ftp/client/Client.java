@@ -38,34 +38,22 @@ public class Client implements FileOperations, AutoCloseable {
     @Override
     public boolean sendFile(File file) throws IOException {
         serverWriter.writeUTF(FTPShared.STORE_COMMAND + " " + file.getName());
-        if (FileOperations.writeToFile(serverWriter, file) &&
-                FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF())) {
-            System.out.println("File " + file.getName() + " sent successfully.");
-            return true;
-        }
-        return false;
+        return FileOperations.writeToFile(serverWriter, file) &&
+                FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF());
     }
 
     @Override
     public boolean receiveFile(File file) throws IOException {
         serverWriter.writeUTF(FTPShared.RETRIEVE_COMMAND + " " + file.getName());
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-            if (FileOperations.readFile(fileOutputStream, serverReader)) {
-                System.out.println("File " + file.getName() + " received successfully.");
-                return true;
-            }
+            return FileOperations.readFile(fileOutputStream, serverReader);
         }
-        return false;
     }
 
     @Override
     public boolean deleteFile(File file) throws IOException {
         serverWriter.writeUTF(FTPShared.DELETE_COMMAND + " " + file.getName());
-        if (FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF())) {
-            System.out.println("File " + file.getName() + " deleted successfully.");
-            return true;
-        }
-        return false;
+        return FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF());
     }
 
     public Map<String, Long> requestServerFileList() throws IOException {
