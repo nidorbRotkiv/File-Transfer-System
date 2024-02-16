@@ -37,14 +37,13 @@ public class Client implements FileOperations, AutoCloseable {
 
     @Override
     public boolean sendFile(File file) throws IOException {
-        serverWriter.writeUTF(FTPShared.STORE_COMMAND + " " + file.getName());
-        return FileOperations.writeToFile(serverWriter, file) &&
-                FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF());
+        sendCommandToServer(FTPShared.STORE_COMMAND, file);
+        return FileOperations.writeToFile(serverWriter, file) && serverResponseIsOk();
     }
 
     @Override
     public boolean receiveFile(File file) throws IOException {
-        serverWriter.writeUTF(FTPShared.RETRIEVE_COMMAND + " " + file.getName());
+        sendCommandToServer(FTPShared.RETRIEVE_COMMAND, file);
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             return FileOperations.readFile(fileOutputStream, serverReader);
         }
@@ -52,8 +51,16 @@ public class Client implements FileOperations, AutoCloseable {
 
     @Override
     public boolean deleteFile(File file) throws IOException {
-        serverWriter.writeUTF(FTPShared.DELETE_COMMAND + " " + file.getName());
+        sendCommandToServer(FTPShared.DELETE_COMMAND, file);
+        return serverResponseIsOk();
+    }
+
+    private boolean serverResponseIsOk() throws IOException {
         return FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF());
+    }
+
+    private void sendCommandToServer(String command, File file) throws IOException {
+        serverWriter.writeUTF(command + " " + file.getName());
     }
 
     public Map<String, Long> requestServerFileList() throws IOException {
