@@ -44,7 +44,7 @@ Subsequently, it will proceed to accept client connections, ready to receive and
   <li>✓ File upload, download, and deletion capabilities</li>
   <li>✓ Directory navigation and file listing</li>
   <li>✓ Graphical User Interface for the client application</li>
-  <li>✓ Selection of host and port</li>
+  <li>✓ Password Authentication</li>
   <li>✓ Docker support</li>
 </ul>
 
@@ -66,6 +66,8 @@ To run this project, you will need to add the following environment variables to
 🌍 `DEFAULT_SERVER_NAME`
 
 💾 `STORAGE_DIRECTORY_NAME`
+
+🔒`SERVER_PASSWORD`
 
 ## Getting Started
 
