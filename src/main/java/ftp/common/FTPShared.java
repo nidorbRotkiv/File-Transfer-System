@@ -17,6 +17,8 @@ public class FTPShared {
     public static final String DELETE_COMMAND = "DELE";
     public static final String LIST_COMMAND = "LIST";
     public static final String SERVER_RESPONSE_OK = "TRUE";
+    public static final String AUTHENTICATION_SUCCESS = "AUTH_SUCCESS";
+    public static final String AUTHENTICATION_FAILED = "AUTH_FAILED";
     public static final String KEY_VALUE_PAIR_SEPARATOR = ":";
     public static final String ENTRY_SEPARATOR = ";";
 

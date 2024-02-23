@@ -12,15 +12,19 @@ public class Client implements FileOperations, AutoCloseable {
     private final Socket serverConnection;
     private final DataOutputStream serverWriter;
     private final DataInputStream serverReader;
+    private boolean authSuccessful;
+    private final String password;
 
-    public Client(String serverName, int port) throws IOException {
+    public Client(String serverName, int port, String password) throws IOException {
+        this.password = password;
         this.serverConnection = new Socket(serverName, port);
         this.serverWriter = new DataOutputStream(serverConnection.getOutputStream());
         this.serverReader = new DataInputStream(serverConnection.getInputStream());
+        sendPasswordToServer();
     }
 
-    public Client() throws IOException {
-        this(FTPShared.DEFAULT_SERVER_NAME, FTPShared.DEFAULT_PORT);
+    public Client(String password) throws IOException {
+        this(FTPShared.DEFAULT_SERVER_NAME, FTPShared.DEFAULT_PORT, password);
     }
 
     public String getServerName() {
@@ -31,8 +35,24 @@ public class Client implements FileOperations, AutoCloseable {
         return serverConnection.getPort();
     }
 
+    public boolean isAuthSuccessful() {
+        return authSuccessful;
+    }
+
     public boolean isConnected() {
-        return serverConnection.isConnected();
+        return serverConnection.isConnected() && authSuccessful;
+    }
+
+    private void sendPasswordToServer() throws IOException {
+        serverWriter.writeUTF(password);
+
+        String authResponse = serverReader.readUTF();
+        if (authResponse.equals(FTPShared.AUTHENTICATION_FAILED)) {
+            authSuccessful = false;
+            close();
+            return;
+        }
+        authSuccessful = true;
     }
 
     @Override

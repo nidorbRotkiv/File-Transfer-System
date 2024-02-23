@@ -2,6 +2,8 @@ package ftp.server;
 
 import ftp.common.FTPShared;
 import ftp.common.FileOperations;
+import io.github.cdimascio.dotenv.Dotenv;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.*;
 import java.net.Socket;
@@ -26,6 +28,9 @@ public class ClientHandler extends Thread implements FileOperations {
     @Override
     public void run() {
         try {
+            if (!authenticateClient()) {
+                return;
+            }
             while (true) {
                 String clientCommand = clientReader.readUTF();
                 File file = new File(FTPShared.STORAGE_DIRECTORY_PATH, getFileNameFromCommand(clientCommand));
@@ -52,6 +57,20 @@ public class ClientHandler extends Thread implements FileOperations {
                 FTPShared.handleException(e);
             }
         }
+    }
+
+    private boolean authenticateClient() throws IOException {
+        String passwordFromUser = DigestUtils.sha256Hex(clientReader.readUTF());
+        String serverPassword = DigestUtils.sha256Hex(Dotenv.load().get("SERVER_PASSWORD"));
+        boolean correctPassword = Objects.equals(passwordFromUser, serverPassword);
+        if (!correctPassword) {
+            clientWriter.writeUTF(FTPShared.AUTHENTICATION_FAILED);
+            close();
+            return false;
+        }
+        clientWriter.writeUTF(FTPShared.AUTHENTICATION_SUCCESS);
+        System.out.println("Client " + clientSocket.getInetAddress() + " connected.");
+        return true;
     }
 
     private String convertMapToString(Map<String, Long> filesWithSizes) {
@@ -123,8 +142,8 @@ public class ClientHandler extends Thread implements FileOperations {
 
     @Override
     public void close() throws IOException {
-            clientWriter.close();
-            clientReader.close();
-            clientSocket.close();
+        clientWriter.close();
+        clientReader.close();
+        clientSocket.close();
     }
 }

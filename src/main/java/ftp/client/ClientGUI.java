@@ -14,18 +14,12 @@ import java.util.Map;
 public class ClientGUI {
     private Client client;
     private JTextArea textArea;
-    private JTextField serverNameField;
-    private JTextField portField;
+    private JTextField serverNameField, portField, passwordField;
     private JButton sendButton;
     private JButton receiveButton;
     private JButton deleteButton;
 
     public ClientGUI() {
-        try {
-            this.client = new Client();
-        } catch (IOException e) {
-            showErrorDialog(e, "Failed to initialize client");
-        }
         initialize();
     }
 
@@ -58,23 +52,24 @@ public class ClientGUI {
         receiveButton = createButton("Receive File", e -> receiveFile(), panel);
         deleteButton = createButton("Delete File", e -> deleteFile(), panel);
 
-        serverNameField = new JTextField();
-        portField = new JTextField();
+        JPanel connectionPanel = new JPanel();
+        serverNameField = new JTextField(10);
+        portField = new JTextField(5);
+        passwordField = new JPasswordField(10);
         JButton connectButton = new JButton("Connect");
-
-        List<JComponent> connectionPanelComponents = List.of(serverNameField, portField, connectButton);
-
-        JPanel connectionPanel = new JPanel(new GridLayout(1, connectionPanelComponents.size() + 1));
-        frame.add(connectionPanel, BorderLayout.NORTH);
-
-        for (JComponent component : connectionPanelComponents) {
-            connectionPanel.add(component);
-        }
-
         connectButton.addActionListener(e -> connectToServer());
 
-        updateConnectionStatus();
+        connectionPanel.add(new JLabel("Server:"));
+        connectionPanel.add(serverNameField);
+        connectionPanel.add(new JLabel("Port:"));
+        connectionPanel.add(portField);
+        connectionPanel.add(new JLabel("Password:"));
+        connectionPanel.add(passwordField);
+        connectionPanel.add(connectButton);
 
+        frame.add(connectionPanel, BorderLayout.NORTH);
+
+        updateConnectionStatus();
         frame.setVisible(true);
     }
 
@@ -85,7 +80,11 @@ public class ClientGUI {
             receiveButton.setEnabled(true);
             deleteButton.setEnabled(true);
         } else {
-            textArea.append("Not connected\n");
+            if (client != null && !client.isAuthSuccessful()) {
+                textArea.append("Authentication failed\n");
+            } else {
+                textArea.append("Not connected\n");
+            }
             sendButton.setEnabled(false);
             receiveButton.setEnabled(false);
             deleteButton.setEnabled(false);
@@ -201,8 +200,10 @@ public class ClientGUI {
         try {
             String serverName = serverNameField.getText().trim();
             int port = Integer.parseInt(portField.getText().trim());
+            String password = new String(((JPasswordField) passwordField).getPassword());
+
             if (this.client != null) this.client.close();
-            this.client = new Client(serverName, port);
+            this.client = new Client(serverName, port, password);
             updateConnectionStatus();
         } catch (NumberFormatException e) {
             showErrorDialog(e, "Invalid port number");
