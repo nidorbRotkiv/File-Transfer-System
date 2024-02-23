@@ -40,7 +40,6 @@ public class Server {
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Client " + clientSocket.getInetAddress() + " connected.");
                 new ClientHandler(clientSocket).start();
             }
         } catch (Exception e) {
