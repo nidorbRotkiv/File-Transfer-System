@@ -6,16 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.ConnectException;
 
-public class FTPShared {
+public class Shared {
     private static final Dotenv dotenv = Dotenv.load();
     public static final int DEFAULT_PORT = Integer.parseInt(dotenv.get("DEFAULT_PORT"));
     public static final String DEFAULT_SERVER_NAME = dotenv.get("DEFAULT_SERVER_NAME");
     public static final String STORAGE_DIRECTORY_NAME = dotenv.get("STORAGE_DIRECTORY_NAME");
     public static final String STORAGE_DIRECTORY_PATH = "./" + STORAGE_DIRECTORY_NAME + "/";
-    public final static String RETRIEVE_COMMAND = "RETR";
-    public final static String STORE_COMMAND = "STOR";
-    public static final String DELETE_COMMAND = "DELE";
-    public static final String LIST_COMMAND = "LIST";
     public static final String SERVER_RESPONSE_OK = "TRUE";
     public static final String AUTHENTICATION_SUCCESS = "AUTH_SUCCESS";
     public static final String AUTHENTICATION_FAILED = "AUTH_FAILED";

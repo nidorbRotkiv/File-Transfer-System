@@ -1,6 +1,5 @@
 package ftp.server;
 
-import ftp.common.FTPShared;
 import ftp.common.FileOperations;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -9,6 +8,9 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Objects;
+
+import static ftp.common.Command.*;
+import static ftp.common.Shared.*;
 
 public class ClientHandler extends Thread implements FileOperations {
     private final Socket clientSocket;
@@ -21,7 +23,7 @@ public class ClientHandler extends Thread implements FileOperations {
             clientReader = new DataInputStream(clientSocket.getInputStream());
             clientWriter = new DataOutputStream(clientSocket.getOutputStream());
         } catch (Exception e) {
-            FTPShared.handleException(e);
+            handleException(e);
         }
     }
 
@@ -33,14 +35,14 @@ public class ClientHandler extends Thread implements FileOperations {
             }
             while (true) {
                 String clientCommand = clientReader.readUTF();
-                File file = new File(FTPShared.STORAGE_DIRECTORY_PATH, getFileNameFromCommand(clientCommand));
-                if (clientCommand.startsWith(FTPShared.RETRIEVE_COMMAND)) {
+                File file = new File(STORAGE_DIRECTORY_PATH, getFileNameFromCommand(clientCommand));
+                if (clientCommand.startsWith(RETRIEVE.command)) {
                     sendFile(file);
-                } else if (clientCommand.startsWith(FTPShared.STORE_COMMAND)) {
+                } else if (clientCommand.startsWith(STORE.command)) {
                     clientWriter.writeUTF(String.valueOf(receiveFile(file)).toUpperCase());
-                } else if (clientCommand.startsWith(FTPShared.DELETE_COMMAND)) {
+                } else if (clientCommand.startsWith(DELETE.command)) {
                     clientWriter.writeUTF(String.valueOf(deleteFile(file)).toUpperCase());
-                } else if (clientCommand.startsWith(FTPShared.LIST_COMMAND)) {
+                } else if (clientCommand.startsWith(LIST.command)) {
                     clientWriter.writeUTF(convertMapToString(Objects.requireNonNull(Server.storageContentsWithSizes())));
                 } else {
                     throw new RuntimeException("Unknown action");
@@ -49,12 +51,12 @@ public class ClientHandler extends Thread implements FileOperations {
         } catch (EOFException e) {
             System.out.println("Client disconnected");
         } catch (IOException e) {
-            FTPShared.handleException(e);
+            handleException(e);
         } finally {
             try {
                 close();
             } catch (IOException e) {
-                FTPShared.handleException(e);
+                handleException(e);
             }
         }
     }
@@ -64,11 +66,11 @@ public class ClientHandler extends Thread implements FileOperations {
         String serverPassword = DigestUtils.sha256Hex(Dotenv.load().get("SERVER_PASSWORD"));
         boolean correctPassword = Objects.equals(passwordFromUser, serverPassword);
         if (!correctPassword) {
-            clientWriter.writeUTF(FTPShared.AUTHENTICATION_FAILED);
+            clientWriter.writeUTF(AUTHENTICATION_FAILED);
             close();
             return false;
         }
-        clientWriter.writeUTF(FTPShared.AUTHENTICATION_SUCCESS);
+        clientWriter.writeUTF(AUTHENTICATION_SUCCESS);
         System.out.println("Client " + clientSocket.getInetAddress() + " connected.");
         return true;
     }
@@ -77,9 +79,9 @@ public class ClientHandler extends Thread implements FileOperations {
         StringBuilder stringBuilder = new StringBuilder();
         for (Map.Entry<String, Long> entry : filesWithSizes.entrySet()) {
             stringBuilder.append(entry.getKey());
-            stringBuilder.append(FTPShared.KEY_VALUE_PAIR_SEPARATOR);
+            stringBuilder.append(KEY_VALUE_PAIR_SEPARATOR);
             stringBuilder.append(entry.getValue());
-            stringBuilder.append(FTPShared.ENTRY_SEPARATOR);
+            stringBuilder.append(ENTRY_SEPARATOR);
         }
         return stringBuilder.toString();
     }
@@ -102,7 +104,7 @@ public class ClientHandler extends Thread implements FileOperations {
             }
             return false;
         } catch (Exception e) {
-            FTPShared.handleException(e);
+            handleException(e);
             return false;
         }
     }
@@ -121,7 +123,7 @@ public class ClientHandler extends Thread implements FileOperations {
             }
             return false;
         } catch (Exception e) {
-            FTPShared.handleException(e);
+            handleException(e);
             return false;
         }
     }

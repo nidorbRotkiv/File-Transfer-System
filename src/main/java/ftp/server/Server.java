@@ -1,23 +1,23 @@
 package ftp.server;
 
-import ftp.common.FTPShared;
-
 import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+import static ftp.common.Shared.*;
+
 public class Server {
     private final int port;
 
     public Server() {
-        this.port = FTPShared.DEFAULT_PORT;
+        this.port = DEFAULT_PORT;
         createStorageDirectory();
     }
 
     public static Map<String, Long> storageContentsWithSizes() {
-        File directory = new File(FTPShared.STORAGE_DIRECTORY_PATH);
+        File directory = new File(STORAGE_DIRECTORY_PATH);
         if (directory.exists() && directory.isDirectory()) {
             File[] contents = directory.listFiles();
             if (contents == null) {
@@ -43,12 +43,12 @@ public class Server {
                 new ClientHandler(clientSocket).start();
             }
         } catch (Exception e) {
-            FTPShared.handleException(e);
+            handleException(e);
         }
     }
 
     private void createStorageDirectory() {
-        File folder = new File(FTPShared.STORAGE_DIRECTORY_NAME);
+        File folder = new File(STORAGE_DIRECTORY_NAME);
         if (folder.exists()) {
             System.out.println("Folder already exists.");
             return;

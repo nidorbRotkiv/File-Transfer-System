@@ -1,12 +1,14 @@
 package ftp.client;
 
-import ftp.common.FTPShared;
 import ftp.common.FileOperations;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+
+import static ftp.common.Command.*;
+import static ftp.common.Shared.*;
 
 public class Client implements FileOperations, AutoCloseable {
     private final Socket serverConnection;
@@ -24,7 +26,7 @@ public class Client implements FileOperations, AutoCloseable {
     }
 
     public Client(String password) throws IOException {
-        this(FTPShared.DEFAULT_SERVER_NAME, FTPShared.DEFAULT_PORT, password);
+        this(DEFAULT_SERVER_NAME, DEFAULT_PORT, password);
     }
 
     public String getServerName() {
@@ -47,7 +49,7 @@ public class Client implements FileOperations, AutoCloseable {
         serverWriter.writeUTF(password);
 
         String authResponse = serverReader.readUTF();
-        if (authResponse.equals(FTPShared.AUTHENTICATION_FAILED)) {
+        if (authResponse.equals(AUTHENTICATION_FAILED)) {
             authSuccessful = false;
             close();
             return;
@@ -57,13 +59,13 @@ public class Client implements FileOperations, AutoCloseable {
 
     @Override
     public boolean sendFile(File file) throws IOException {
-        sendCommandToServer(FTPShared.STORE_COMMAND, file);
+        sendCommandToServer(STORE.command, file);
         return FileOperations.writeToFile(serverWriter, file) && serverResponseIsOk();
     }
 
     @Override
     public boolean receiveFile(File file) throws IOException {
-        sendCommandToServer(FTPShared.RETRIEVE_COMMAND, file);
+        sendCommandToServer(RETRIEVE.command, file);
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             return FileOperations.readFile(fileOutputStream, serverReader);
         }
@@ -71,12 +73,12 @@ public class Client implements FileOperations, AutoCloseable {
 
     @Override
     public boolean deleteFile(File file) throws IOException {
-        sendCommandToServer(FTPShared.DELETE_COMMAND, file);
+        sendCommandToServer(DELETE.command, file);
         return serverResponseIsOk();
     }
 
     private boolean serverResponseIsOk() throws IOException {
-        return FTPShared.SERVER_RESPONSE_OK.equals(serverReader.readUTF());
+        return SERVER_RESPONSE_OK.equals(serverReader.readUTF());
     }
 
     private void sendCommandToServer(String command, File file) throws IOException {
@@ -84,18 +86,18 @@ public class Client implements FileOperations, AutoCloseable {
     }
 
     public Map<String, Long> requestServerFileList() throws IOException {
-        serverWriter.writeUTF(FTPShared.LIST_COMMAND);
+        serverWriter.writeUTF(LIST.command);
         String filesListAsString = serverReader.readUTF();
         return convertFilesList(filesListAsString);
     }
 
     private Map<String, Long> convertFilesList(String filesListAsString) {
         Map<String, Long> filesWithSizes = new HashMap<>();
-        for (String entry : filesListAsString.split(FTPShared.ENTRY_SEPARATOR)) {
+        for (String entry : filesListAsString.split(ENTRY_SEPARATOR)) {
             if (entry.isEmpty()) {
                 continue;
             }
-            String[] keyValue = entry.split(FTPShared.KEY_VALUE_PAIR_SEPARATOR);
+            String[] keyValue = entry.split(KEY_VALUE_PAIR_SEPARATOR);
             if (keyValue.length != 2) {
                 continue;
             }

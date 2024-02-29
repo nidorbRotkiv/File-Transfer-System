@@ -2,6 +2,8 @@ package ftp.common;
 
 import java.io.*;
 
+import static ftp.common.Shared.handleException;
+
 public interface FileOperations {
     int bufferSize = 4096;
     boolean sendFile(File file) throws IOException;
@@ -22,7 +24,7 @@ public interface FileOperations {
             }
             return true;
         } catch (IOException e) {
-            FTPShared.handleException(e);
+            handleException(e);
             return false;
         }
     }
@@ -36,7 +38,7 @@ public interface FileOperations {
             }
             return true;
         } catch (IOException e) {
-            FTPShared.handleException(e);
+            handleException(e);
             return false;
         }
     }
@@ -55,7 +57,7 @@ public interface FileOperations {
                 totalRead += read;
             }
         } catch (IOException e) {
-            FTPShared.handleException(e);
+            handleException(e);
         }
     }
 }
